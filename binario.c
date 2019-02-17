@@ -11,14 +11,33 @@ void clasp_solve(){
 	execv("clasp --verbose=0 binairo.cnf > claspout.txt", NULL);
 }
 
+int three_consecutive_rule(FILE *file, int n) {
+    int count = 0;
+    int i, j, aux;
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n-2; j++) {
+            aux = i*n+j;
+            fprintf(file, "%d %d %d 0\n", aux+1, aux+2, aux+3);
+            fprintf(file, "-%d -%d -%d 0\n", aux+1, aux+2, aux+3);
+            fprintf(file, "%d %d %d 0\n", j*n+i+1, (j+1)*n+i+1, (j+2)*n+i+1);
+            fprintf(file, "-%d -%d -%d 0\n", j*n+i+1, (j+1)*n+i+1, (j+2)*n+i+1);
+            count += 4;
+        }
+    }
+
+    return count;
+}
+
 void write_rules(int *vector, int dimension){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
 	char c;
+    int i, j;
 	
 	tmpfile = fopen("tmp.cnf", "w+");
 	
-	for(int i=0; i<dimension*dimension; i++){
+	for(i=0; i<dimension*dimension; i++){
 		switch (vector[i]){
 			case 1:
 				fprintf(tmpfile, "%d 0\n", (i+1));
@@ -32,6 +51,8 @@ void write_rules(int *vector, int dimension){
 				break;
 		}
 	}
+    
+    rulenum += three_consecutive_rule(tmpfile, dimension);
 	
 	file = fopen ("binairo.cnf", "w+");
 	fprintf(file, "p cnf %d %d\n", (dimension*dimension), rulenum);

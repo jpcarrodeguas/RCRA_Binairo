@@ -7,8 +7,57 @@ int *init_vector(int dimension) {
     return malloc(dimension*dimension*sizeof(int));
 }
 
-void clasp_solve(){
-	execv("clasp --verbose=0 binairo.cnf > claspout.txt", NULL);
+void clasp_solve(int dimension){
+	FILE *fp;
+	char c;
+	char out[1024];
+	char *token;
+	const char s[2] = " ";
+	int i;
+
+	fp = popen("clasp binairo.cnf --verbose=0", "r");
+
+	c = getc(fp);
+	for (i=0; c!=EOF; i++){
+		out[i]=c;
+		c = getc(fp);
+	}
+	
+	pclose(fp);
+	
+	fp = fopen("binairo.txt", "w+");
+	
+	token = strtok(out, s);
+	while( token != NULL ) {
+		if(!strcmp(token, "v")){
+			token = strtok(NULL, s);
+			continue;
+		}
+		if(!strcmp(token, "s")){
+			token = strtok(NULL, s);
+			continue;
+		}
+		if(!strcmp(token, "SATISFIABLE")){
+			token = strtok(NULL, s);
+			continue;
+		}
+		i=atoi(token);
+		if(i > 0){
+			fprintf(fp, "%d", 1);
+		}
+		else if(i <  0){
+			fprintf(fp, "%d", 0);
+			i=-i;
+		}
+		if(((i-1) % dimension) == dimension-1){
+			fprintf(fp, "\n");
+		}
+		token = strtok(NULL, s);
+	}
+
+	
+	
+	
 }
 
 int three_consecutive_rule(FILE *file, int n) {
@@ -33,7 +82,7 @@ void write_rules(int *vector, int dimension){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
 	char c;
-    int i, j;
+    int i;
 	
 	tmpfile = fopen("tmp.cnf", "w+");
 	
@@ -54,6 +103,7 @@ void write_rules(int *vector, int dimension){
     
     rulenum += three_consecutive_rule(tmpfile, dimension);
 	
+	
 	file = fopen ("binairo.cnf", "w+");
 	fprintf(file, "p cnf %d %d\n", (dimension*dimension), rulenum);
 	
@@ -70,7 +120,7 @@ void write_rules(int *vector, int dimension){
 	remove("tmp.cnf");
 	fclose(file);
 
-	clasp_solve();
+	clasp_solve(dimension);
 }
 
 int read_file(char *filepath) {
@@ -104,16 +154,6 @@ int read_file(char *filepath) {
                     break;
             }
         }
-        
-        /*
-        for (i = 0; i < (dimension*dimension); i++){
-            printf("%3d", vector[i]);
-            if ((i % dimension) == 5) {
-                printf("\n");
-            }
-            //putchar(c);
-        }
-        */
         
         write_rules(vector, dimension);
         

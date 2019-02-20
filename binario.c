@@ -78,6 +78,31 @@ int three_consecutive_rule(FILE *file, int n) {
     return count;
 }
 
+int same_number_of_each_rule(FILE *file, int n, int *vector) {
+    // El array 'vector' contiene la configuración de fichas
+    int count = 0;
+    int i, j, aux;
+
+    for (i = 0; i < n; i++) {
+        // Rule for row
+        for (j = 0; j < n; j++) {
+            aux = (j+1+n*i) * vector[j];
+            fprintf(file, "%d ", aux);
+        }
+        fprintf(file, "0\n");
+        count += 1;
+        // Rule for column
+        for (j = 0; j < n; j++) {
+            aux = (i+j*n+1) * vector[j];
+            fprintf(file, "%d ", aux);
+        }
+        fprintf(file, "0\n");
+        count +=1;
+    }
+
+    return count;
+}
+
 void write_rules(int *vector, int dimension){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
@@ -102,6 +127,10 @@ void write_rules(int *vector, int dimension){
 	}
     
     rulenum += three_consecutive_rule(tmpfile, dimension);
+
+    int vector2[] = {1, 1, -1, 1, 1, -1}; // para testear 'same_number_of_each_rule'
+
+    rulenum += same_number_of_each_rule(tmpfile, dimension, vector2);
 	
 	
 	file = fopen ("binairo.cnf", "w+");

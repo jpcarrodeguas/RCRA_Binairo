@@ -3,6 +3,7 @@
 # CUIDADO CON MEMORIA, EN VEZ DE GUARDAR TO EN MEMORIA, IR ESCRIBIENDO
 
 import sys, subprocess
+from tqdm import tqdm
 
 def rules(filename):
 
@@ -19,19 +20,22 @@ def rules(filename):
         aux += s
 
     # Situación inicial
-    for i in range(len(aux)):
+    print("*** Adding initial rules...\n")
+    for i in tqdm(range(len(aux))):
         if aux[i] == '0':
             vector.append(str(-1*(i+1)) + " 0\n")
         elif aux[i] == '1':
             vector.append(str(i+1) + " 0\n")
-
+    print("*** Done!\n")
 
     # Norma no más de dos por filas
-    for i in range(n):
-        for j in range(n-2):
+    print("*** Adding rule #2 for rows...\n")
+    for i in tqdm(range(n)):
+        for j in (range(n-2)):
             va = i*n+j
             vector.append(str(va+1) + " " + str(va+2) + " " + str(va+3) + " 0\n")
             vector.append(str(-1*(va+1)) + " " + str(-1*(va+2)) + " " + str(-1*(va+3)) + " 0\n")
+    print("*** Done!\n")
 
     # Norma no más de dos por columnas
     for j in range(n):

@@ -10,7 +10,7 @@ int *init_vector(int dimension) {
 void clasp_solve(int dimension){
 	FILE *fp;
 	char c;
-	char out[1024];
+	char out[4096];
 	char *token;
 	const char s[2] = " ";
 	int i;
@@ -103,6 +103,40 @@ int same_number_of_each_rule(FILE *file, int n, int *vector) {
     return count;
 }
 
+void gen_combinations(int counter, int *vector, int length) {
+    int i;
+
+    if (counter > 0) {
+        i = length-counter-2;
+        if (i >= 0) {
+            if (vector[i] == 0 && vector[i+1] == 0) {
+                vector[length-counter] = 1;
+                gen_combinations(counter-1, vector, length);
+                return;
+            } else if (vector[i] == 1 && vector[i+1] == 1) {
+                vector[length-counter] = 0;
+                gen_combinations(counter-1, vector, length);
+                return;
+            }
+        }
+        vector[length-counter] = 0;
+        gen_combinations(counter-1, vector, length);
+        vector[length-counter] = 1;
+        gen_combinations(counter-1, vector, length);
+    } else {
+        int sum = 0;
+        for (i = 0; i < length; i++) {
+            sum += vector[i];
+        }
+        if (sum == (length/2)+1 || sum == (length/2)-1) {
+            for (i = 0; i < length; i++) {
+                printf(" %d ", vector[i]);
+            }
+            printf("\n");
+        }
+    }
+}
+
 void write_rules(int *vector, int dimension){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
@@ -128,10 +162,11 @@ void write_rules(int *vector, int dimension){
     
     rulenum += three_consecutive_rule(tmpfile, dimension);
 
-    int vector2[] = {1, 1, -1, 1, 1, -1}; // para testear 'same_number_of_each_rule'
+    int *vector2 = malloc(sizeof(int)*dimension); // para testear 'same_number_of_each_rule'
 
-    rulenum += same_number_of_each_rule(tmpfile, dimension, vector2);
+    //rulenum += same_number_of_each_rule(tmpfile, dimension, vector2);
 	
+    //gen_combinations(dimension, vector2, dimension);
 	
 	file = fopen ("binairo.cnf", "w+");
 	fprintf(file, "p cnf %d %d\n", (dimension*dimension), rulenum);
@@ -148,6 +183,7 @@ void write_rules(int *vector, int dimension){
 	fclose(tmpfile);
 	remove("tmp.cnf");
 	fclose(file);
+    free(vector2);
 
 	clasp_solve(dimension);
 }

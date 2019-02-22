@@ -4,4 +4,4 @@ binairo:
 	gcc binairo.c -o binairo
 
 clean:
-	rm -f binairo
+	rm -f binairo binairo.txt binairo.cnf

@@ -14,6 +14,7 @@ void clasp_solve(int dimension){
 	char *token;
 	const char s[2] = " ";
 	int i;
+    int count = 0;
 
 	fp = popen("clasp binairo.cnf --verbose=0", "r");
 
@@ -21,6 +22,9 @@ void clasp_solve(int dimension){
 	for (i=0; c!=EOF; i++){
 		out[i]=c;
 		c = getc(fp);
+        if (i == 4095) {
+            break;
+        }
 	}
 	
 	pclose(fp);
@@ -44,14 +48,19 @@ void clasp_solve(int dimension){
 		i=atoi(token);
 		if(i > 0){
 			fprintf(fp, "%d", 1);
+            count++;
 		}
 		else if(i <  0){
 			fprintf(fp, "%d", 0);
+            count++;
 			i=-i;
 		}
 		if(((i-1) % dimension) == dimension-1){
 			fprintf(fp, "\n");
 		}
+        if (count == dimension*dimension) {
+            break;
+        }
 		token = strtok(NULL, s);
 	}
 
@@ -72,6 +81,59 @@ int three_consecutive_rule(FILE *file, int n) {
             fprintf(file, "%d %d %d 0\n", j*n+i+1, (j+1)*n+i+1, (j+2)*n+i+1);
             fprintf(file, "-%d -%d -%d 0\n", j*n+i+1, (j+1)*n+i+1, (j+2)*n+i+1);
             count += 4;
+        }
+    }
+
+    return count;
+}
+
+int same_config_rule(FILE *file, int n, int *rulenum) {
+    int count = 0;
+    int z = (n*n);
+    int i, j, k;
+    int p, q;
+    int buffer[n];
+
+    for (i = 0; i < n; i++) {
+        for (j = i+1; j < n; j++) {
+            for (k = 0; k < n; k++) {
+                p = k+i*n+1;
+                q = k+j*n+1;
+                z++;
+                buffer[k] = z;
+                count++;
+
+                fprintf(file, "-%d %d %d 0\n", z, p, q);
+                fprintf(file, "-%d -%d -%d 0\n", z, p, q);
+                fprintf(file, "%d -%d %d 0\n", z, p, q);
+                fprintf(file, "%d %d -%d 0\n", z, p, q);
+                (*rulenum) += 4;
+            }
+            for (k = 0; k < n; k++) {
+                fprintf(file, "%d ", buffer[k]);
+            }
+            fprintf(file, "0\n");
+            (*rulenum) += 1;
+
+            for (k = 0; k < n; k++) {
+                p = k*n+i+1;
+                q = k*n+j+1;
+                z++;
+                buffer[k] = z;
+                count++;
+
+                fprintf(file, "-%d %d %d 0\n", z, p, q);
+                fprintf(file, "-%d -%d -%d 0\n", z, p, q);
+                fprintf(file, "%d -%d %d 0\n", z, p, q);
+                fprintf(file, "%d %d -%d 0\n", z, p, q);
+                (*rulenum) += 4;
+            }
+            for (k = 0; k < n; k++) {
+                fprintf(file, "%d ", buffer[k]);
+            }
+            fprintf(file, "0\n");
+            (*rulenum) += 1;
+ 
         }
     }
 
@@ -103,36 +165,38 @@ int same_number_of_each_rule(FILE *file, int n, int *vector) {
     return count;
 }
 
-void gen_combinations(int counter, int *vector, int length) {
+void gen_combinations(int counter, int *vector, int length, int *rulenum, FILE *file) {
     int i;
+    // 0 -> -1
 
     if (counter > 0) {
         i = length-counter-2;
         if (i >= 0) {
-            if (vector[i] == 0 && vector[i+1] == 0) {
+            if (vector[i] == -1 && vector[i+1] == -1) {
                 vector[length-counter] = 1;
-                gen_combinations(counter-1, vector, length);
+                gen_combinations(counter-1, vector, length, rulenum, file);
                 return;
             } else if (vector[i] == 1 && vector[i+1] == 1) {
-                vector[length-counter] = 0;
-                gen_combinations(counter-1, vector, length);
+                vector[length-counter] = -1;
+                gen_combinations(counter-1, vector, length, rulenum, file);
                 return;
             }
         }
-        vector[length-counter] = 0;
-        gen_combinations(counter-1, vector, length);
+        vector[length-counter] = -1;
+        gen_combinations(counter-1, vector, length, rulenum, file);
         vector[length-counter] = 1;
-        gen_combinations(counter-1, vector, length);
+        gen_combinations(counter-1, vector, length, rulenum, file);
     } else {
         int sum = 0;
         for (i = 0; i < length; i++) {
             sum += vector[i];
         }
-        if (sum == (length/2)+1 || sum == (length/2)-1) {
+        if (/*sum == 2 || sum == -2*/ sum != 0) {
             for (i = 0; i < length; i++) {
                 printf(" %d ", vector[i]);
             }
             printf("\n");
+            (*rulenum) += same_number_of_each_rule(file, length, vector);
         }
     }
 }
@@ -141,7 +205,7 @@ void write_rules(int *vector, int dimension){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
 	char c;
-    int i;
+    int i, extravariables;
 	
 	tmpfile = fopen("tmp.cnf", "w+");
 	
@@ -162,14 +226,14 @@ void write_rules(int *vector, int dimension){
     
     rulenum += three_consecutive_rule(tmpfile, dimension);
 
-    int *vector2 = malloc(sizeof(int)*dimension); // para testear 'same_number_of_each_rule'
+    int *vector2 = malloc(sizeof(int)*dimension);
 
-    //rulenum += same_number_of_each_rule(tmpfile, dimension, vector2);
-	
-    //gen_combinations(dimension, vector2, dimension);
-	
+    gen_combinations(dimension, vector2, dimension, &rulenum, tmpfile);
+
+    extravariables = same_config_rule(tmpfile, dimension, &rulenum);
+
 	file = fopen ("binairo.cnf", "w+");
-	fprintf(file, "p cnf %d %d\n", (dimension*dimension), rulenum);
+	fprintf(file, "p cnf %d %d\n", (dimension*dimension+extravariables), rulenum);
 	
 	fseek(tmpfile, 0, SEEK_SET);
 	
@@ -236,7 +300,6 @@ int main(int argc, char **argv) {
     }
 
     printf("*** Input file: %s\n", argv[1]);
-
     int i = read_file(argv[1]);
 
     printf("Dimension: %d\n", i);

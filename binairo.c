@@ -8,21 +8,12 @@
 #define PBWIDTH 60
 
 void print_progress (double percentage) {
-    double aux = percentage + 0.01;
-    int val = (int) (aux * 100);
-    int lpad = (int) (aux * PBWIDTH);
+    int val = (int) (percentage * 100);
+    int lpad = (int) (percentage * PBWIDTH);
     int rpad = PBWIDTH - lpad;
     printf ("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
     fflush (stdout);
 } /* by razzak [https://stackoverflow.com/questions/14539867/] */
-
-/*double microsegundos() {    // obtiene la hora del sistema en microsegundos 
-    struct timeval t;
-    if (gettimeofday(&t, NULL) < 0 )
-        return 0.0;
-    return (t.tv_usec + t.tv_sec * 1000000.0);
-} // t antes y despues (d - a)
-*/
 
 void clasp_solve(int dimension){
 	FILE *fp;
@@ -84,9 +75,6 @@ void clasp_solve(int dimension){
 		token = strtok(NULL, s);
 	}
 
-	
-	
-	
 }
 
 int three_consecutive_rule(FILE *file, int n) {
@@ -94,6 +82,7 @@ int three_consecutive_rule(FILE *file, int n) {
     int i, j, aux;
 
     for (i = 0; i < n; i++) {
+        print_progress(((double) i+1) / n);
         for (j = 0; j < n-2; j++) {
             // Rules for rows
             aux = i*n+j;
@@ -118,13 +107,14 @@ int same_config_rule(FILE *file, int n, int *rulenum) {
     int buffer[n+n];
 
     for (i = 0; i < n; i++) {
+        print_progress(((double) i+1) / n);
         for (j = i+1; j < n; j++) {
             for (k = 0; k < n; k++) {
                 // Rules for rows
                 p = k+i*n+1;
                 q = k+j*n+1;
                 z++;
-                buffer[(k+k)] = z;
+                buffer[k+k] = z;
 
                 fprintf(file, "-%d %d %d 0\n", z, p, q);
                 fprintf(file, "-%d -%d -%d 0\n", z, p, q);
@@ -135,7 +125,7 @@ int same_config_rule(FILE *file, int n, int *rulenum) {
                 p = k*n+i+1;
                 q = k*n+j+1;
                 z++;
-                buffer[(k+k+1)] = z;
+                buffer[k+k+1] = z;
 
                 fprintf(file, "-%d %d %d 0\n", z, p, q);
                 fprintf(file, "-%d -%d -%d 0\n", z, p, q);
@@ -169,6 +159,7 @@ int same_number_of_each_rule(FILE *file, int n, int *vector, int type) {
     int i, j, aux;
 
     for (i = 0; i < n; i++) {
+        print_progress(((double) i+1) / n);
         // Rule for row
         for (j = 0; j < n; j++) {
             if (vector[j] == type) {
@@ -253,17 +244,17 @@ void write_rules(int *vector, int dimension){
     
     rulenum += three_consecutive_rule(tmpfile, dimension);
 
-    printf("Generating rule for same configuration...\n");
+    printf("\nGenerating rule for same configuration...\n");
 
     extravariables = same_config_rule(tmpfile, dimension, &rulenum);
 
     int *vector2 = malloc(sizeof(int)*dimension);
 
-    printf("Generating rule for same number of elements...\n");
+    printf("\nGenerating rule for same number of elements...\n");
 
     gen_combinations(dimension, vector2, dimension, &rulenum, tmpfile);
 
-    printf("Writing rules into 'binairo.cnf'...\n");
+    printf("\nWriting rules into 'binairo.cnf'...\n\n");
 
 	file = fopen ("binairo.cnf", "w+");
 	fprintf(file, "p cnf %d %d\n", (dimension*dimension+extravariables), rulenum);
@@ -292,7 +283,7 @@ void write_rules(int *vector, int dimension){
 
 	clasp_solve(dimension);
 
-    printf("Done!\n\n");
+    printf("Done! (solution also in 'binairo.txt')\n");
 }
 
 void read_file(char *filepath) {
@@ -342,30 +333,16 @@ void read_file(char *filepath) {
 
 int main(int argc, char **argv) {
 
-    int i;
-    clock_t begin, end;
-    double time_spent;
-
-    printf("Binairo SAT - RCRA P1\n");
+    printf("Binairo SAT - RCRA P1\n\n");
 
     if (argc != 2) {
         printf("*** Usage: binario <filename>\n");
         return 1;
     }
 
-
     printf("Input file: %s\n\n", argv[1]);
 
-    begin = clock();
-
     read_file(argv[1]);
-
-    end = clock();
-
-    time_spent = (double) (end-begin) / CLOCKS_PER_SEC;
-
-    printf("Elapsed: %f seconds\n", time_spent);
-    
 
     return 0;
 }

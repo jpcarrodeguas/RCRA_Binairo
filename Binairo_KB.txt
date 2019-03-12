@@ -1,0 +1,19 @@
+#const dim = 6.
+#show pos/3.
+row(1..dim).
+col(1..dim).
+color(black;white).
+
+1 {pos(X,Y,C) : color(C)} 1 :- row(X),col(Y).
+:- pos(X,Y,C), pos(X,Y,C2), C!=C2.
+
+%Regla 3 seguidos
+:- pos(X,Y,C), pos(X,Y+1,C), pos(X,Y+2,C).
+:- pos(X,Y,C), pos(X+1,Y,C), pos(X+2,Y,C).
+
+%Regla colores equilibrados
+:- dim/2 != #count{X : pos(X,Y,white)}, col(Y).
+:- dim/2 != #count{Y : pos(X,Y,white)}, row(X).
+
+%Regla repetición de lineas
+:- {X : pos(X,Y,white)}, col(Y).

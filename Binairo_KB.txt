@@ -16,4 +16,4 @@ color(black;white).
 :- dim/2 != #count{Y : pos(X,Y,white)}, row(X).
 
 %Regla repetición de lineas
-:- {X : pos(X,Y,white)}, col(Y).
+

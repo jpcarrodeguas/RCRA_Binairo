@@ -77,12 +77,14 @@ void clasp_solve(int dimension){
 
 }
 
-int three_consecutive_rule(FILE *file, int n) {
+int three_consecutive_rule(FILE *file, int n, int fprogress) {
     int count = 0;
     int i, j, aux;
 
     for (i = 0; i < n; i++) {
-        print_progress(((double) i+1) / n);
+        if (fprogress) {
+            print_progress(((double) i+1) / n);
+        }
         for (j = 0; j < n-2; j++) {
             // Rules for rows
             aux = i*n+j;
@@ -95,11 +97,14 @@ int three_consecutive_rule(FILE *file, int n) {
             count += 4;
         }
     }
+    if (fprogress) {
+        printf("\n");
+    }
 
     return count;
 }
 
-int same_config_rule(FILE *file, int n, int *rulenum) {
+int same_config_rule(FILE *file, int n, int *rulenum, int fprogress) {
     int count = 0;
     int z = (n*n);
     int i, j, k;
@@ -107,7 +112,9 @@ int same_config_rule(FILE *file, int n, int *rulenum) {
     int buffer[n+n];
 
     for (i = 0; i < n; i++) {
-        print_progress(((double) i+1) / n);
+        if (fprogress) {
+            print_progress(((double) i+1) / n);
+        }
         for (j = i+1; j < n; j++) {
             for (k = 0; k < n; k++) {
                 // Rules for rows
@@ -149,41 +156,77 @@ int same_config_rule(FILE *file, int n, int *rulenum) {
             (*rulenum) += 2;
         }
     }
-
-    return count;
-}
-
-int same_number_of_each_rule(FILE *file, int n, int *vector, int type) {
-    // El array 'vector' contiene la configuración de fichas, type para indicar que ficha nos interesa
-    int count = 0;
-    int i, j, aux;
-
-    for (i = 0; i < n; i++) {
-        print_progress(((double) i+1) / n);
-        // Rule for row
-        for (j = 0; j < n; j++) {
-            if (vector[j] == type) {
-                aux = (j+1+n*i) * vector[j];
-                fprintf(file, "%d ", aux);
-            }
-        }
-        fprintf(file, "0\n");
-        // Rule for column
-        for (j = 0; j < n; j++) {
-            if (vector[j] == type) {
-                aux = (i+j*n+1) * vector[j];
-                fprintf(file, "%d ", aux);
-            }
-        }
-        fprintf(file, "0\n");
-
-        count +=2;
+    if (fprogress) {
+        printf("\n");
     }
 
     return count;
 }
 
-void gen_combinations(int counter, int *vector, int length, int *rulenum, FILE *file) {
+int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprogress, int *initialconf) {
+    // El array 'vector' contiene la configuración de fichas, type para indicar que ficha nos interesa
+    int count = 0;
+    int i, j, aux;
+    char buffer[80];
+    int aux2;
+
+    for (i = 0; i < n; i++) {
+        if (fprogress) {
+            print_progress(((double) i+1) / n);
+        }
+        // Rule for row
+        sprintf(buffer, "");
+        aux2 = 1;
+        for (j = 0; j < n; j++) {
+            if (vector[j] == type) {
+                aux = (j+n*i);// * vector[j];
+                //printf("%d %d ", aux, initialconf[aux]);
+                if (initialconf[aux] == 0 || initialconf[aux] != vector[j]) {
+          //          printf("%d %d %d ", aux, initialconf[aux], vector[j]);
+                    aux = (aux+1) * vector[j];
+                    sprintf(buffer + strlen(buffer), "%d ", aux);
+                } else {
+                    aux2 = 0;
+                    break;
+                }
+               // fprintf(file, "%d ", aux);
+            }
+        }
+      // printf("\n");
+       // fprintf(file, "0\n");
+       if (aux2) {
+            fprintf(file, "%s0\n", buffer);
+            count++;
+        }
+        // Rule for column
+        sprintf(buffer, "");
+        aux2 = 1;
+        for (j = 0; j < n; j++) {
+            if (vector[j] == type) {
+                aux = (i+j*n);// * vector[j];
+                if (initialconf[aux] == 0 || initialconf[aux] != vector[j]) {
+                    aux = (aux+1) * vector[j];
+                    sprintf(buffer + strlen(buffer), "%d ", aux);
+                } else {
+                    aux2 = 0;
+                    break;
+                }
+               // fprintf(file, "%d ", aux);
+            }
+        }
+       // fprintf(file, "0\n");
+        if (aux2) {
+            fprintf(file, "%s0\n", buffer);
+            count++;
+        }
+    }
+   // printf("\n");
+    
+
+    return count;
+}
+
+void gen_combinations(int counter, int *vector, int length, int *rulenum, FILE *file, int fprogress, int *initialconf) {
     // El 0 es -1
     int i, sum;
 
@@ -192,30 +235,30 @@ void gen_combinations(int counter, int *vector, int length, int *rulenum, FILE *
         if (i >= 0) {
             if (vector[i] == -1 && vector[i+1] == -1) {
                 vector[length-counter] = 1;
-                gen_combinations(counter-1, vector, length, rulenum, file);
+                gen_combinations(counter-1, vector, length, rulenum, file, fprogress, initialconf);
                 return;
             } else if (vector[i] == 1 && vector[i+1] == 1) {
                 vector[length-counter] = -1;
-                gen_combinations(counter-1, vector, length, rulenum, file);
+                gen_combinations(counter-1, vector, length, rulenum, file, fprogress, initialconf);
                 return;
             }
         }
         vector[length-counter] = -1;
-        gen_combinations(counter-1, vector, length, rulenum, file);
+        gen_combinations(counter-1, vector, length, rulenum, file, fprogress, initialconf);
         vector[length-counter] = 1;
-        gen_combinations(counter-1, vector, length, rulenum, file);
+        gen_combinations(counter-1, vector, length, rulenum, file, fprogress, initialconf);
     } else {
         sum = 0;
         for (i = 0; i < length; i++) {
             sum += vector[i];
         }
         if (sum == 2 || sum == -2) {
-            (*rulenum) += same_number_of_each_rule(file, length, vector, (sum/2));
+            (*rulenum) += same_number_of_each_rule(file, length, vector, (sum/2), fprogress, initialconf);
         }
     }
 }
 
-void write_rules(int *vector, int dimension){
+void write_rules(int *vector, int dimension, int fprogress){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
 	char c;
@@ -231,7 +274,7 @@ void write_rules(int *vector, int dimension){
 				fprintf(tmpfile, "%d 0\n", (i+1));
 				rulenum++;
 				break;
-			case 0:
+			case -1:
 				fprintf(tmpfile, "-%d 0\n", (i+1));
 				rulenum++;
 				break;
@@ -242,19 +285,23 @@ void write_rules(int *vector, int dimension){
 
     printf("Generating rule for three consecutive...\n");
     
-    rulenum += three_consecutive_rule(tmpfile, dimension);
+    rulenum += three_consecutive_rule(tmpfile, dimension, fprogress);
 
-    printf("\nGenerating rule for same configuration...\n");
+    printf("Generating rule for same configuration...\n");
 
-    extravariables = same_config_rule(tmpfile, dimension, &rulenum);
+    extravariables = same_config_rule(tmpfile, dimension, &rulenum, fprogress);
 
     int *vector2 = malloc(sizeof(int)*dimension);
 
-    printf("\nGenerating rule for same number of elements...\n");
+    printf("Generating rule for same number of elements...\n");
 
-    gen_combinations(dimension, vector2, dimension, &rulenum, tmpfile);
+    gen_combinations(dimension, vector2, dimension, &rulenum, tmpfile, fprogress, vector);
 
-    printf("\nWriting rules into 'binairo.cnf'...\n\n");
+    if (fprogress) {
+        printf("\n");
+    }
+
+    printf("Writing rules into 'binairo.cnf'...\n\n");
 
 	file = fopen ("binairo.cnf", "w+");
 	fprintf(file, "p cnf %d %d\n", (dimension*dimension+extravariables), rulenum);
@@ -283,7 +330,7 @@ void write_rules(int *vector, int dimension){
 
 	clasp_solve(dimension);
 
-    printf("Done! (solution also in 'binairo.txt')\n");
+    printf("\nDone! (solution also in 'binairo.txt')\n");
 }
 
 void read_file(char *filepath) {
@@ -291,6 +338,8 @@ void read_file(char *filepath) {
     FILE *file;
     file = fopen(filepath, "r");
     int *vector;
+    int i;
+    int fprogress = 1; // 1 -> print progress bar, 0 -> no printing
 
     if (file) {		
 		//Leemos el primer caracter para saber cual es la dimensión del problema
@@ -298,17 +347,17 @@ void read_file(char *filepath) {
         // Inicializamos el vector
         vector = malloc(dimension*dimension*sizeof(int));
 
-        int i = 0;
+        i = 0;
 
-        // Transcribimos la situación inicial 1=1; 0=0; Vacio = -1
+        // Transcribimos la situación inicial 1=1; 0=-1; Vacio = 0
         while ((c = getc(file)) != EOF) { 
             switch (c) {
                 case '.':
-                    vector[i] = -1;
+                    vector[i] = 0;
                     i++;
                     break;
                 case '0':
-                    vector[i] = 0;
+                    vector[i] = -1;
                     i++;
                     break;
                 case '1':
@@ -322,9 +371,16 @@ void read_file(char *filepath) {
                     return;
             }
         }
-        printf("Generating rules...\n");
+
+        if (dimension > 20) {
+            printf("WARNING! Execution may take a while!\n");
+            printf("Desactivating progress bar, all power going to generation...\n\n");
+            fprogress = 0;
+        }
+
+        printf("Starting rule generation...\n");
         
-        write_rules(vector, dimension);
+        write_rules(vector, dimension, fprogress);
         
         fclose(file);
         free(vector);

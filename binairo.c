@@ -175,7 +175,7 @@ int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprog
             print_progress(((double) i+1) / n);
         }
         // Rule for row
-        sprintf(buffer, "");
+        sprintf(buffer, "\r");
         aux2 = 1;
         for (j = 0; j < n; j++) {
             if (vector[j] == type) {
@@ -199,7 +199,7 @@ int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprog
             count++;
         }
         // Rule for column
-        sprintf(buffer, "");
+        sprintf(buffer, "\r");
         aux2 = 1;
         for (j = 0; j < n; j++) {
             if (vector[j] == type) {

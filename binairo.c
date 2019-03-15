@@ -77,9 +77,9 @@ void clasp_solve(int dimension){
 
 }
 
-int three_consecutive_rule(FILE *file, int n, int fprogress) {
+int three_consecutive_rule(FILE *file, int n, int fprogress, int *initialconf) {
     int count = 0;
-    int i, j, aux;
+    int i, j, first, second, third;
 
     for (i = 0; i < n; i++) {
         if (fprogress) {
@@ -87,14 +87,29 @@ int three_consecutive_rule(FILE *file, int n, int fprogress) {
         }
         for (j = 0; j < n-2; j++) {
             // Rules for rows
-            aux = i*n+j;
-            fprintf(file, "%d %d %d 0\n", aux+1, aux+2, aux+3);
-            fprintf(file, "-%d -%d -%d 0\n", aux+1, aux+2, aux+3);
+            first = i*n+j;
+            second = first + 1;
+            third = first + 2;
+            if (initialconf[first] != 1 && initialconf[second] != 1 && initialconf[third] != 1) {
+                fprintf(file, "%d %d %d 0\n", first+1, second+1, third+1);
+                count++;
+            }
+            if (initialconf[first] != -1 && initialconf[second] != -1 && initialconf[third] != -1) {
+                fprintf(file, "-%d -%d -%d 0\n", first+1, second+1, third+1);
+                count++;
+            }
             // Rules for columns
-            fprintf(file, "%d %d %d 0\n", j*n+i+1, (j+1)*n+i+1, (j+2)*n+i+1);
-            fprintf(file, "-%d -%d -%d 0\n", j*n+i+1, (j+1)*n+i+1, (j+2)*n+i+1);
-            // Increment rule counter
-            count += 4;
+            first = j*n+i;
+            second = (j+1)*n+i;
+            third = (j+2)*n+i;
+            if (initialconf[first] != 1 && initialconf[second] != 1 && initialconf[third] != 1) {
+                fprintf(file, "%d %d %d 0\n", first+1, second+1, third+1);
+                count++;
+            }
+            if (initialconf[first] != -1 && initialconf[second] != -1 && initialconf[third] != -1) {
+                fprintf(file, "-%d -%d -%d 0\n", first+1, second+1, third+1);
+                count++;
+            }
         }
     }
     if (fprogress) {
@@ -168,7 +183,7 @@ int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprog
     int count = 0;
     int i, j, aux;
     char buffer[80];
-    int aux2;
+    int isvalid;
 
     for (i = 0; i < n; i++) {
         if (fprogress) {
@@ -176,52 +191,43 @@ int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprog
         }
         // Rule for row
         sprintf(buffer, "\r");
-        aux2 = 1;
+        isvalid = 1;
         for (j = 0; j < n; j++) {
             if (vector[j] == type) {
-                aux = (j+n*i);// * vector[j];
-                //printf("%d %d ", aux, initialconf[aux]);
+                aux = (j+n*i);
                 if (initialconf[aux] == 0 || initialconf[aux] != vector[j]) {
-          //          printf("%d %d %d ", aux, initialconf[aux], vector[j]);
                     aux = (aux+1) * vector[j];
                     sprintf(buffer + strlen(buffer), "%d ", aux);
                 } else {
-                    aux2 = 0;
+                    isvalid = 0;
                     break;
                 }
-               // fprintf(file, "%d ", aux);
             }
         }
-      // printf("\n");
-       // fprintf(file, "0\n");
-       if (aux2) {
+       if (isvalid) {
             fprintf(file, "%s0\n", buffer);
             count++;
         }
         // Rule for column
         sprintf(buffer, "\r");
-        aux2 = 1;
+        isvalid = 1;
         for (j = 0; j < n; j++) {
             if (vector[j] == type) {
-                aux = (i+j*n);// * vector[j];
+                aux = (i+j*n);
                 if (initialconf[aux] == 0 || initialconf[aux] != vector[j]) {
                     aux = (aux+1) * vector[j];
                     sprintf(buffer + strlen(buffer), "%d ", aux);
                 } else {
-                    aux2 = 0;
+                    isvalid = 0;
                     break;
                 }
-               // fprintf(file, "%d ", aux);
             }
         }
-       // fprintf(file, "0\n");
-        if (aux2) {
+        if (isvalid) {
             fprintf(file, "%s0\n", buffer);
             count++;
         }
     }
-   // printf("\n");
-    
 
     return count;
 }
@@ -285,7 +291,7 @@ void write_rules(int *vector, int dimension, int fprogress){
 
     printf("Generating rule for three consecutive...\n");
     
-    rulenum += three_consecutive_rule(tmpfile, dimension, fprogress);
+    rulenum += three_consecutive_rule(tmpfile, dimension, fprogress, vector);
 
     printf("Generating rule for same configuration...\n");
 
@@ -308,13 +314,6 @@ void write_rules(int *vector, int dimension, int fprogress){
 	
 	fseek(tmpfile, 0, SEEK_SET);
 	
-	/*c = fgetc(tmpfile); 
-    while (c != EOF) 
-    { 
-        fputc(c, file); 
-        c = fgetc(tmpfile); 
-    }*/
-
     char buffer[BUFSIZ];
     size_t bytes;
 

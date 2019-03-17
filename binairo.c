@@ -77,7 +77,15 @@ void clasp_solve(int dimension){
 
 }
 
-int three_consecutive_rule(FILE *file, int n, int fprogress, int *initialconf) {
+int row_coords(int i, int j, int dimension) {
+    return (i*dimension+j);
+}
+
+int col_coords(int i, int j, int dimension) {
+    return (i+dimension*j);
+}
+
+int three_consecutive_aux(FILE *file, int *initialconf, int fprogress, int n, int (*get_coords)(int, int, int)) {
     int count = 0;
     int i, j, first, second, third;
 
@@ -86,22 +94,9 @@ int three_consecutive_rule(FILE *file, int n, int fprogress, int *initialconf) {
             print_progress(((double) i+1) / n);
         }
         for (j = 0; j < n-2; j++) {
-            // Rules for rows
-            first = i*n+j;
-            second = first + 1;
-            third = first + 2;
-            if (initialconf[first] != 1 && initialconf[second] != 1 && initialconf[third] != 1) {
-                fprintf(file, "%d %d %d 0\n", first+1, second+1, third+1);
-                count++;
-            }
-            if (initialconf[first] != -1 && initialconf[second] != -1 && initialconf[third] != -1) {
-                fprintf(file, "-%d -%d -%d 0\n", first+1, second+1, third+1);
-                count++;
-            }
-            // Rules for columns
-            first = j*n+i;
-            second = (j+1)*n+i;
-            third = (j+2)*n+i;
+            first = get_coords(i, j, n);
+            second = get_coords(i, j+1, n);
+            third = get_coords(i, j+2, n);
             if (initialconf[first] != 1 && initialconf[second] != 1 && initialconf[third] != 1) {
                 fprintf(file, "%d %d %d 0\n", first+1, second+1, third+1);
                 count++;
@@ -112,6 +107,16 @@ int three_consecutive_rule(FILE *file, int n, int fprogress, int *initialconf) {
             }
         }
     }
+
+    return count;
+}
+
+int three_consecutive_rule(FILE *file, int n, int fprogress, int *initialconf) {
+    int count = 0;
+
+    count += three_consecutive_aux(file, initialconf, fprogress, n, row_coords);
+    count += three_consecutive_aux(file, initialconf, fprogress, n, col_coords);
+
     if (fprogress) {
         printf("\n");
     }
@@ -119,101 +124,98 @@ int three_consecutive_rule(FILE *file, int n, int fprogress, int *initialconf) {
     return count;
 }
 
-int same_config_rule(FILE *file, int n, int *rulenum, int fprogress) {
-    int count = 0;
-    int z = (n*n);
+int same_config_aux(FILE *file, int n, int *rulenum, int fprogress, int *initialconf, int extravar, int (*get_coords)(int, int, int)) {
+    int z = extravar;
     int i, j, k;
     int p, q;
-    int buffer[n+n];
+    int buffer[n];
+    int aux, isvalid;
 
     for (i = 0; i < n; i++) {
         if (fprogress) {
             print_progress(((double) i+1) / n);
         }
         for (j = i+1; j < n; j++) {
+            aux = 0;
+            isvalid = 1;
             for (k = 0; k < n; k++) {
-                // Rules for rows
-                p = k+i*n+1;
-                q = k+j*n+1;
-                z++;
-                buffer[k+k] = z;
-
-                fprintf(file, "-%d %d %d 0\n", z, p, q);
-                fprintf(file, "-%d -%d -%d 0\n", z, p, q);
-                fprintf(file, "%d -%d %d 0\n", z, p, q);
-                fprintf(file, "%d %d -%d 0\n", z, p, q);
-
-                // Rules for columns
-                p = k*n+i+1;
-                q = k*n+j+1;
-                z++;
-                buffer[k+k+1] = z;
-
-                fprintf(file, "-%d %d %d 0\n", z, p, q);
-                fprintf(file, "-%d -%d -%d 0\n", z, p, q);
-                fprintf(file, "%d -%d %d 0\n", z, p, q);
-                fprintf(file, "%d %d -%d 0\n", z, p, q);
-
-                // Increment extravariables count and number of rules
-                count += 2;
-                (*rulenum) += 8;
+                p = get_coords(i, k, n);
+                q = get_coords(j, k, n);
+                if (initialconf[p] != 0 && initialconf[q] != 0 && initialconf[p] != initialconf[q]) {
+                    isvalid = 0;
+                    break;
+                }
             }
-            // Extravariables rows
-            for (k = 0; k < n+n; k+=2) {
-                fprintf(file, "%d ", buffer[k]);
-            }
-            fprintf(file, "0\n");
-            // Extravariables columns
-            for (k = 1; k < n+n; k+=2) {
-                fprintf(file, "%d ", buffer[k]);
-            }
-            fprintf(file, "0\n");
-            (*rulenum) += 2;
+            if (isvalid) {
+                for (k = 0; k < n; k++) {
+                    p = get_coords(i, k, n);
+                    q = get_coords(j, k, n);
+                    z++;
+                    buffer[k] = z;
+                    if (initialconf[p] != 1) {
+                        if (initialconf[q] != 1) {
+                            fprintf(file, "-%d %d %d 0\n", z, p+1, q+1);
+                            aux++;
+                        }
+                        if (initialconf[q] != -1) {
+                            fprintf(file, "%d %d -%d 0\n", z, p+1, q+1);
+                            aux++;
+                        }
+                    }
+                    if (initialconf[p] != -1) {
+                        if (initialconf[q] != 1) {
+                            fprintf(file, "%d -%d %d 0\n", z, p+1, q+1);
+                            aux++;
+                        }
+                        if (initialconf[q] != -1) {
+                            fprintf(file, "-%d -%d -%d 0\n", z, p+1, q+1);
+                            aux++;
+                        }
+                    }
+                }
+                for (k = 0; k < n; k++) {
+                    fprintf(file, "%d ", buffer[k]);
+                }
+                fprintf(file, "0\n");
+                aux++;
+            } 
+            // Increment number of rules
+            (*rulenum) += aux;
         }
     }
+
+    return z;
+}
+
+int same_config_rule(FILE *file, int n, int *rulenum, int fprogress, int *initialconf) {
+    int z = (n*n);
+
+    z = same_config_aux(file, n, rulenum, fprogress, initialconf, z, row_coords);
+    z = same_config_aux(file, n, rulenum, fprogress, initialconf, z, col_coords);
+
     if (fprogress) {
         printf("\n");
     }
 
-    return count;
+    return (z - n*n);
 }
 
-int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprogress, int *initialconf) {
-    // El array 'vector' contiene la configuración de fichas, type para indicar que ficha nos interesa
+int same_number_of_each_aux(FILE *file, int n, int fprogress, int *vector, int type, int *initialconf, int (*get_coords)(int, int, int)) {
     int count = 0;
     int i, j, aux;
     char buffer[80];
     int isvalid;
 
-    for (i = 0; i < n; i++) {
+    for (i =0; i < n; i++) {
         if (fprogress) {
             print_progress(((double) i+1) / n);
         }
-        // Rule for row
+        // Reset buffer
         sprintf(buffer, "\r");
         isvalid = 1;
         for (j = 0; j < n; j++) {
             if (vector[j] == type) {
-                aux = (j+n*i);
-                if (initialconf[aux] == 0 || initialconf[aux] != vector[j]) {
-                    aux = (aux+1) * vector[j];
-                    sprintf(buffer + strlen(buffer), "%d ", aux);
-                } else {
-                    isvalid = 0;
-                    break;
-                }
-            }
-        }
-       if (isvalid) {
-            fprintf(file, "%s0\n", buffer);
-            count++;
-        }
-        // Rule for column
-        sprintf(buffer, "\r");
-        isvalid = 1;
-        for (j = 0; j < n; j++) {
-            if (vector[j] == type) {
-                aux = (i+j*n);
+                aux = get_coords(i, j, n);
                 if (initialconf[aux] == 0 || initialconf[aux] != vector[j]) {
                     aux = (aux+1) * vector[j];
                     sprintf(buffer + strlen(buffer), "%d ", aux);
@@ -228,6 +230,16 @@ int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprog
             count++;
         }
     }
+
+    return count;
+}
+
+int same_number_of_each_rule(FILE *file, int n, int *vector, int type, int fprogress, int *initialconf) {
+    // El array 'vector' contiene la configuración de fichas, type para indicar que ficha nos interesa
+    int count = 0;
+        
+    count += same_number_of_each_aux(file, n, fprogress, vector, type, initialconf, row_coords);
+    count += same_number_of_each_aux(file, n, fprogress, vector, type, initialconf, col_coords);
 
     return count;
 }
@@ -269,6 +281,7 @@ void write_rules(int *vector, int dimension, int fprogress){
 	int rulenum = 0;
 	char c;
     int i, extravariables;
+    int *vector2 = malloc(sizeof(int)*dimension);
 	
 	tmpfile = fopen("tmp.cnf", "w+");
 
@@ -295,9 +308,7 @@ void write_rules(int *vector, int dimension, int fprogress){
 
     printf("Generating rule for same configuration...\n");
 
-    extravariables = same_config_rule(tmpfile, dimension, &rulenum, fprogress);
-
-    int *vector2 = malloc(sizeof(int)*dimension);
+    extravariables = same_config_rule(tmpfile, dimension, &rulenum, fprogress, vector);
 
     printf("Generating rule for same number of elements...\n");
 

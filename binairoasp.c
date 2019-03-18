@@ -109,6 +109,8 @@ void write_init(int *vector, int dimension){
 				break;
 		}
 	}
+
+    fclose(file);
 }
 
 void read_file(char *filepath){

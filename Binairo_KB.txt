@@ -17,8 +17,8 @@ color(black;white).
 :- dim/2 != #count{Y : pos(X,Y,white)}, row(X).
 
 %Regla repetición de lineas
-sameinrow(X1,X2,Y) :- pos(X1,Y,C1),pos(X2,Y,C2), C1=C2, X1!=X2.
+sameinrow(X1,X2,Y) :- pos(X1,Y,C),pos(X2,Y,C), X1!=X2.
 :- dim = #count{Y : sameinrow(X1,X2,Y)}, row(X1), row(X2), X1!=X2.
 
-sameincol(Y1,Y2,X) :- pos(X,Y1,C1),pos(X,Y2,C2), C1=C2, Y1!=Y2.
+sameincol(Y1,Y2,X) :- pos(X,Y1,C),pos(X,Y2,C), Y1!=Y2.
 :- dim = #count{X : sameincol(Y1,Y2,X)}, col(Y1), col(Y2), Y1!=Y2.

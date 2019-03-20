@@ -226,7 +226,7 @@ int same_number_of_each_aux(FILE *file, int n, int fprogress, int *vector, int t
             }
         }
         if (isvalid) {
-            fprintf(file, "%s0\n", buffer);
+            fprintf(file, "%s0\n", buffer+1);
             count++;
         }
     }
@@ -337,27 +337,23 @@ void write_rules(int *vector, int dimension, int fprogress){
     free(vector2);
 
     printf("Solving...\n");
-
 	clasp_solve(dimension);
-
     printf("\nDone! (solution also in 'binairo.txt')\n");
 }
 
 void read_file(char *filepath) {
-    int c, dimension;
+    int c, dimension, i=0;
     FILE *file;
-    file = fopen(filepath, "r");
     int *vector;
-    int i;
     int fprogress = 1; // 1 -> print progress bar, 0 -> no printing
+
+    file = fopen(filepath, "r");
 
     if (file) {		
 		//Leemos el primer caracter para saber cual es la dimensión del problema
 		fscanf (file, "%d", &dimension);
         // Inicializamos el vector
         vector = malloc(dimension*dimension*sizeof(int));
-
-        i = 0;
 
         // Transcribimos la situación inicial 1=1; 0=-1; Vacio = 0
         while ((c = getc(file)) != EOF) { 
@@ -382,6 +378,8 @@ void read_file(char *filepath) {
             }
         }
 
+        fclose(file);
+
         if (dimension > 20) {
             printf("WARNING! Execution may take a while!\n");
             printf("Desactivating progress bar, all power going to generation...\n\n");
@@ -389,10 +387,8 @@ void read_file(char *filepath) {
         }
 
         printf("Starting rule generation...\n");
-        
         write_rules(vector, dimension, fprogress);
-        
-        fclose(file);
+
         free(vector);
     }
 }

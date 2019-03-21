@@ -6,9 +6,10 @@ Programa que resuelve puzles Binairo utilizando clasp y clingo.
 ## Compilación:
 
 Toda la compilación puede hacerse utilizando el comando make, esto compilará
-tanto la versión que resuelve el problema con SAT como la versión que lo
-resuelve con ASP. De querer solo compilar una versión del problema,
-puede utilizarse el comando make para compilar la versión correspondiente:
+tanto la versión que resuelve el problema con SAT, como la versión que lo
+resuelve con ASP. De querer solo compilar una versión del problema, puede
+utilizarse el comando make y especificar la version deseada para compilar solo
+esa versión:
 	
 ```bash
 $ make 	   #compila las dos versiones
@@ -25,8 +26,8 @@ del tablero: '0' para representar una ficha blanca, '1' para representar una
 ficha negra, '.' para representar una celda vacía.
 
 ```bash
-$ binairo <inputfile>
-$ binairoasp <inputfile>
+$ ./binairo <inputfile>
+$ ./binairoasp <inputfile>
 ```
 
 Un ejemplo de fichero que el programa toma como situación inicial, dada
@@ -45,6 +46,14 @@ sería:
 .1....
 0..1.. 
 ```
+
+## Salida
+Ambas versiones tienen como salida un fichero de texto que contiene el puzle
+resuelto con el mismo formato utilizado en la entrada. La versión SAT también 
+crea un fichero `binairo.cnf` que contiene las reglas que utiliza clasp en
+formato DIMACS. Es necesario tener en cuenta que este fichero puede ser de
+gran tamaño en el caso de entradas de gran dimensión (mas de 13 millones de
+reglas para una entrada de 30*30).
 
 ## Resultados
 Tiempo que ambas versiones tardan en resolver los puzles utilizados como

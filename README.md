@@ -3,7 +3,7 @@ Binairo_RCRA
 
 Programa que resuelve puzles Binairo utilizando clasp y clingo.
 
-##Compilación:
+## Compilación:
 
 Toda la compilación puede hacerse utilizando el comando make, esto compilará
 tanto la versión que resuelve el problema con SAT como la versión que lo
@@ -16,7 +16,7 @@ $ make sat #compila la versión sat, el ejecutable se llama binairo
 $ make asp #compila la versión asp, el ejecutable se llama binairoasp 	
 ```
 
-##Uso
+## Uso
 
 Ambas versiones reciben la situación inicial como argumento, esta situación
 inicial debe tener la dimensión del tablero en la primera linea del fichero,
@@ -41,7 +41,7 @@ Un ejemplo de fichero que el programa toma como situación inicial sería:
 0..1..
 ```
 
-##Resultados
+## Resultados
 Tiempo que ambas versiones tardan en resolver los puzles utilizados como
 benchmark (obtenidos con el comando time):
 

@@ -29,10 +29,22 @@ $ binairo <inputfile>
 $ binairoasp <inputfile>
 ```
 
-Un ejemplo de fichero que el programa toma como situación inicial sería:
+Un ejemplo de fichero que el programa toma como situación inicial, dada
+la siguiente imagen,
 
-| 6 <br> ...... <br> .11.0. <br> 01.... <br> ....00 <br> .1.... <br> 0..1.. | ![alt text](https://www.dc.fi.udc.es/~cabalar/kr/current/initial.png "Situación inicial") |
-|---------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+![alt text](https://www.dc.fi.udc.es/~cabalar/kr/current/initial.png "Situación inicial")
+
+sería:
+
+```
+6 
+......
+.11.0.
+01....
+....00
+.1....
+0..1.. 
+```
 
 ## Resultados
 Tiempo que ambas versiones tardan en resolver los puzles utilizados como

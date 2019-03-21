@@ -31,6 +31,8 @@ $ binairoasp <inputfile>
 
 Un ejemplo de fichero que el programa toma como situación inicial sería:
 
+![alt text](https://www.dc.fi.udc.es/~cabalar/kr/current/initial.png "Situación inicial")
+
 ```
 6
 ......

@@ -1,3 +1,7 @@
+% AUTORES
+% Xin Lin
+% Julián Penedo Carrodeguas
+
 #const dim = 6.
 #show pos/3.
 row(1..dim).

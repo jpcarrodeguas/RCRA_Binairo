@@ -3,7 +3,7 @@ Binairo_RCRA
 
 Programa que resuelve puzles Binairo utilizando clasp y clingo.
 
-## Compilación:
+## Compilación
 
 Toda la compilación puede hacerse utilizando el comando make, esto compilará
 tanto la versión que resuelve el problema con SAT, como la versión que lo

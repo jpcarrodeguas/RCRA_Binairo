@@ -1,8 +1,13 @@
+/*
+* AUTORES
+* Xin Lin
+* Julián Penedo Carrodeguas
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
 
 #define PBSTR "############################################################"
 #define PBWIDTH 60
@@ -279,7 +284,6 @@ void gen_combinations(int counter, int *vector, int length, int *rulenum, FILE *
 void write_rules(int *vector, int dimension, int fprogress){
 	FILE *file, *tmpfile;
 	int rulenum = 0;
-	char c;
     int i, extravariables;
     int *vector2 = malloc(sizeof(int)*dimension);
 	
@@ -328,8 +332,9 @@ void write_rules(int *vector, int dimension, int fprogress){
     char buffer[BUFSIZ];
     size_t bytes;
 
-    while (0 < (bytes = fread(buffer, 1, sizeof(buffer), tmpfile)))
+    while (0 < (bytes = fread(buffer, 1, sizeof(buffer), tmpfile))){
         fwrite(buffer, 1, bytes, file);
+	}
 	
 	fclose(tmpfile);
 	remove("tmp.cnf");

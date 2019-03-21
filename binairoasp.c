@@ -1,7 +1,11 @@
+/*
+* AUTORES
+* Xin Lin
+* Julián Penedo Carrodeguas
+*/
+
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 int pos(int row, int col, int dim){
 	return ((row-1)*dim+(col-1));

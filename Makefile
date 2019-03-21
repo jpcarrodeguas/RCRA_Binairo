@@ -1,11 +1,11 @@
 # Makefile for RCRA P1 - Binairo Puzzle
 
-all: binairo binairoasp
+all: sat asp
 
-binairo: binairo.c
+sat: binairo.c
 	gcc binairo.c -o binairo
 
-binairoasp: binairoasp.c
+asp: binairoasp.c
 	gcc binairoasp.c -o binairoasp
 
 clean:

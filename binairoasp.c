@@ -140,23 +140,38 @@ void read_file(char *filepath){
                     vector[i] = 1;
                     i++;
                     break;
-                default:
+                case '\n':
                     break;
+                default:
+                    printf("Error!\n");
+                    return;
             }
         }
         
         fclose(file);
+
+        printf("Generating initial configuration...\n");
         write_init(vector, dim);
         free(vector);
+
+        printf("Solving...\n");
         clingo_solve(dim);
+        printf("\nDone! (solution also in 'binairoasp.txt')\n");
 	}
 }
 
 int main(int argc, char **argv) {
+
+    printf("Binairo ASP - RCRA P1\n\n");
+
     if (argc != 2) {
         printf("*** Usage: binarioasp <filename>\n");
         return 1;
     }
+
+    printf("Input file: %s\n\n", argv[1]);
 	
 	read_file(argv[1]);
+
+    return 0;
 }

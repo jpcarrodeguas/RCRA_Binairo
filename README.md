@@ -31,8 +31,7 @@ $ binairoasp <inputfile>
 
 Un ejemplo de fichero que el programa toma como situación inicial sería:
 
-![alt text](https://www.dc.fi.udc.es/~cabalar/kr/current/initial.png "Situación inicial")
-
+|
 ```
 6
 ......
@@ -42,6 +41,7 @@ Un ejemplo de fichero que el programa toma como situación inicial sería:
 .1....
 0..1..
 ```
+|![alt text](https://www.dc.fi.udc.es/~cabalar/kr/current/initial.png "Situación inicial")|
 
 ## Resultados
 Tiempo que ambas versiones tardan en resolver los puzles utilizados como

@@ -3,6 +3,9 @@ Binairo_RCRA
 
 Programa que resuelve puzles Binairo utilizando clasp y clingo.
 
+Realizado como práctica para la asignatura Representación del Conocimiento y
+Razonamiento Automático en la Facultad de Informática de La Coruña - Año 18/19
+
 ## Compilación
 
 Toda la compilación puede hacerse utilizando el comando make, esto compilará
